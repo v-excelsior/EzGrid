@@ -1,42 +1,38 @@
 import React from 'react'
 import './styles.scss'
 
-const getOptions = (props) => {
-  const { isGreen, isBordered } = props
+import { Format } from './helpers/format'
 
-  const options = ['ez-grid-basic']
+const getClasses = (props) => {
+  const classes = ['ez-grid-basic']
 
-  if (isGreen) {
-    options.push('green')
+  if (props.template) {
+    classes.push('ez-grid-template')
   }
 
-  if (isBordered) {
-    options.push('border')
-  }
-
-  return options.join(' ')
+  return classes.join(' ')
 }
 
-const getTemplate = (template) => {
-  if (template) {
-    const rows = []
+const getTemplate = (template) => template ? Format.Template.standard(template) : undefined
 
-    for (let i = 0; i < template.length; i++) {
-      rows.push(`"${template[i].join(' ')}" 1fr`)
-    }
-
-    return `${rows.join(' ')} / 1fr 1fr 1fr`
-  }
-}
+const getAreas = (template) => [...new Set(template.flat())]
 
 export function EzGrid(props) {
-  const opt = getOptions(props)
+  const { template, gap } = props
 
-  const template = getTemplate(props.template)
-  console.log('here', template)
+  const classes = getClasses(props)
+  const gridAreas = getAreas(template)
+  const gridTemplate = getTemplate(template)
+
   return (
-    <div className={ opt } style={ { display:'grid',gridTemplate: template } }>
-      { props.children }
+    <div className={ classes } style={ { gridTemplate, gap } }>
+      { props.children.map((el, i) => {
+        return React.createElement(el.type, {
+          ...el.props,
+          key  : i,
+          style: { ...el.props.style, gridArea: gridAreas[i] }
+        })
+      }) }
     </div>
   )
 }
